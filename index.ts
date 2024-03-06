@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import sqlite3 from 'sqlite3';
+import cors from 'cors';
 
 interface Player {
     lastName: string;
@@ -21,6 +22,7 @@ interface Game {
 const app = express();
 const PORT = 3000;
 
+app.use(cors());
 app.use(bodyParser.json());
 
 // Create SQLite database connection
@@ -41,7 +43,8 @@ db.serialize(() => {
             turnsTaken INTEGER,
             pointsPlayer1 INTEGER,
             pointsPlayer2 INTEGER,
-            state TEXT
+            state TEXT,
+            createdAt TEXT
         )
     `);
 });
@@ -49,17 +52,18 @@ db.serialize(() => {
 // Create a new game
 app.post('/api/games', (req: Request, res: Response) => {
     const { player1, player2 }: { player1: Player; player2: Player } = req.body;
+    const createdAt = new Date().toISOString();
 
     db.run(`
         INSERT INTO games (
             player1_lastName, player1_firstName, player1_pointsNeeded,
             player2_lastName, player2_firstName, player2_pointsNeeded,
-            turnsTaken, pointsPlayer1, pointsPlayer2, state
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            turnsTaken, pointsPlayer1, pointsPlayer2, state, createdAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
         player1.lastName, player1.firstName, player1.pointsNeeded,
         player2.lastName, player2.firstName, player2.pointsNeeded,
-        0, 0, 0, 'ongoing'
+        0, 0, 0, 'ongoing', createdAt
     ], function(err) {
         if (err) {
             console.error('Error creating game:', err);
