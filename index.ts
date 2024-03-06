@@ -24,7 +24,8 @@ const PORT = 3000;
 app.use(bodyParser.json());
 
 // Create SQLite database connection
-const db = new sqlite3.Database(':memory:'); // Or provide a path to a file for persistent storage
+// const db = new sqlite3.Database(':memory:'); // Or provide a path to a file for persistent storage
+const db = new sqlite3.Database('bulthoes.db'); // Or provide a path to a file for persistent storage
 
 // Initialize database schema
 db.serialize(() => {
@@ -72,13 +73,13 @@ app.post('/api/games', (req: Request, res: Response) => {
 // Update a game
 app.put('/api/games/:id', (req: Request, res: Response) => {
     const gameId: number = parseInt(req.params.id);
-    const { pointsPlayer1, pointsPlayer2, state }: { pointsPlayer1: number; pointsPlayer2: number; state: Game['state'] } = req.body;
+    const { pointsPlayer1, pointsPlayer2, state, turnsTaken }: { pointsPlayer1: number; pointsPlayer2: number; state: Game['state']; turnsTaken: number } = req.body;
 
     db.run(`
         UPDATE games
-        SET pointsPlayer1 = ?, pointsPlayer2 = ?, state = ?
+        SET pointsPlayer1 = ?, pointsPlayer2 = ?, state = ?, turnsTaken = ?
         WHERE id = ?
-    `, [pointsPlayer1, pointsPlayer2, state, gameId], function(err) {
+    `, [pointsPlayer1, pointsPlayer2, state, turnsTaken, gameId], function(err) {
         if (err) {
             console.error('Error updating game:', err);
             res.status(500).send('Error updating game');
